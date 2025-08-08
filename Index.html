@@ -1,157 +1,345 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Widget Météo Bohème Pastel</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Widget Météo Bohème Pastel - Prévision 5 jours avec recherche et géoloc</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Amatic+SC&family=Poppins&display=swap');
+
+  :root {
+    --color-bg: #fef9f4;
+    --color-primary: #f7c6b8;
+    --color-secondary: #c5d8d1;
+    --color-accent: #b89fca;
+    --color-text: #4a4a4a;
+    --shadow: 0 4px 10px rgba(200, 180, 170, 0.3);
+  }
+
   body {
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f8f5f2;
-    color: #444;
+    background: var(--color-bg);
+    font-family: 'Poppins', sans-serif;
     display: flex;
     justify-content: center;
-    padding: 20px;
+    padding: 40px;
   }
 
   .weather-widget {
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    padding: 20px;
-    max-width: 500px;
-    text-align: center;
-  }
-
-  h2 {
-    font-size: 1.4rem;
-    color: #7a6c5d;
-    margin-bottom: 10px;
-  }
-
-  .forecast-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-  }
-
-  .day-card {
-    background: #fffaf7;
+    background: white;
+    box-shadow: var(--shadow);
     border-radius: 15px;
+    width: 360px;
+    padding: 20px;
+    text-align: center;
+    color: var(--color-text);
+    user-select: none;
+  }
+
+  .weather-widget h2 {
+    font-family: 'Amatic SC', cursive;
+    font-size: 2.2em;
+    color: var(--color-accent);
+    margin: 0 0 10px 0;
+  }
+
+  /* Barre recherche */
+  .search-bar {
+    display: flex;
+    margin-bottom: 15px;
+  }
+  .search-bar input[type="text"] {
+    flex-grow: 1;
+    border: 2px solid var(--color-primary);
+    border-radius: 8px 0 0 8px;
+    padding: 8px 12px;
+    font-size: 1em;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    color: var(--color-text);
+  }
+  .search-bar button {
+    background: var(--color-primary);
+    border: none;
+    border-radius: 0 8px 8px 0;
+    padding: 8px 14px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s ease;
+  }
+  .search-bar button:hover {
+    background: var(--color-accent);
+  }
+
+  .location {
+    font-weight: 600;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+  }
+
+  .forecast-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .day-forecast {
+    background: var(--color-secondary);
+    border-radius: 10px;
     padding: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: transform 0.2s;
+    flex: 1;
+    box-shadow: 0 2px 6px rgba(184, 159, 202, 0.3);
   }
 
-  .day-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .day-name {
-    font-weight: bold;
-    font-size: 1rem;
-    color: #a1887f;
+  .day-forecast h3 {
+    font-family: 'Amatic SC', cursive;
+    margin: 0 0 8px 0;
+    font-size: 1.3em;
+    color: var(--color-primary);
   }
 
   .temp {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #6b705c;
+    font-weight: 700;
+    font-size: 1.5em;
+    color: var(--color-primary);
+    margin-bottom: 6px;
+  }
+
+  .description {
+    font-style: italic;
+    text-transform: capitalize;
+    font-size: 0.95em;
+    margin-bottom: 6px;
+    min-height: 40px;
   }
 
   .icon {
     width: 50px;
     height: 50px;
+    margin: 0 auto;
   }
 
-  .desc {
-    font-size: 0.9rem;
-    color: #888;
+  .error {
+    color: #c94c4c;
+    font-weight: 700;
+    margin-top: 10px;
+  }
+
+  .nav-buttons {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .nav-buttons button {
+    background: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s ease;
+  }
+
+  .nav-buttons button:disabled {
+    background: #e5c7bf;
+    cursor: default;
+  }
+
+  .nav-buttons button:hover:not(:disabled) {
+    background: var(--color-accent);
   }
 </style>
 </head>
 <body>
 
-<div class="weather-widget">
-  <h2 id="location">Chargement...</h2>
-  <div class="forecast-grid" id="forecast"></div>
-  <div id="error" style="color:red; margin-top:10px;"></div>
+<div class="weather-widget" role="region" aria-label="Widget météo avec prévision sur plusieurs jours avec navigation et recherche">
+  <h2>Prévision météo</h2>
+
+  <form class="search-bar" id="searchForm" aria-label="Recherche de ville pour météo">
+    <input type="text" id="cityInput" placeholder="Entrer une ville (ex: Paris)" aria-label="Nom de la ville" />
+    <button type="submit">Rechercher</button>
+  </form>
+
+  <div class="location" id="location">Chargement...</div>
+  <div class="forecast-container" id="forecast"></div>
+  <div class="error" id="error"></div>
+
+  <div class="nav-buttons">
+    <button id="prevBtn" disabled>← Précédent</button>
+    <button id="nextBtn" disabled>Suivant →</button>
+  </div>
 </div>
 
 <script>
-const API_KEY = "bee85c5f8eaca0dfbc7b4ba83c08096c";
-const DEFAULT_CITY = "Paris,FR";
-const forecastEl = document.getElementById("forecast");
-const locationEl = document.getElementById("location");
-const errorEl = document.getElementById("error");
+  const API_KEY = 'bee85c5f8eaca0dfbc7b4ba83c08096c';
+  const DEFAULT_CITY = 'Paris,FR';
 
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(pos => {
-    fetchForecastByCoords(pos.coords.latitude, pos.coords.longitude);
-  }, () => {
-    fetchForecast(DEFAULT_CITY);
-  });
-} else {
-  fetchForecast(DEFAULT_CITY);
-}
+  const locationEl = document.getElementById('location');
+  const forecastEl = document.getElementById('forecast');
+  const errorEl = document.getElementById('error');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const cityInput = document.getElementById('cityInput');
+  const searchForm = document.getElementById('searchForm');
 
-async function fetchForecast(city) {
-  try {
-    errorEl.textContent = "";
-    locationEl.textContent = "Chargement...";
-    forecastEl.innerHTML = "";
+  let dailyKeys = [];
+  let dailyData = {};
+  let currentIndex = 0;
+  const DAYS_PER_PAGE = 5;
 
-    const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric&lang=fr`);
-    if (!res.ok) throw new Error("Ville introuvable");
-    const data = await res.json();
-
-    locationEl.textContent = `${data.city.name}, ${data.city.country}`;
-    renderForecast(data.list);
-  } catch (err) {
-    errorEl.textContent = err.message;
+  function getDayName(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fr-FR', { weekday: 'short' });
   }
-}
 
-async function fetchForecastByCoords(lat, lon) {
-  try {
-    errorEl.textContent = "";
-    locationEl.textContent = "Chargement...";
-    forecastEl.innerHTML = "";
-
-    const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=fr`);
-    if (!res.ok) throw new Error("Localisation introuvable");
-    const data = await res.json();
-
-    locationEl.textContent = `${data.city.name}, ${data.city.country}`;
-    renderForecast(data.list);
-  } catch (err) {
-    errorEl.textContent = err.message;
+  function averageTemp(temps) {
+    const sum = temps.reduce((a,b) => a+b, 0);
+    return Math.round(sum / temps.length);
   }
-}
 
-function renderForecast(list) {
-  const daily = {};
-  list.forEach(item => {
-    const date = item.dt_txt.split(" ")[0];
-    if (!daily[date]) daily[date] = item;
+  function mostFrequent(arr) {
+    const freq = {};
+    arr.forEach(x => freq[x] = (freq[x] || 0) + 1);
+    let max = 0, result = arr[0];
+    for(const key in freq) {
+      if(freq[key] > max) {
+        max = freq[key];
+        result = key;
+      }
+    }
+    return result;
+  }
+
+  function renderForecast() {
+    forecastEl.innerHTML = '';
+
+    const slice = dailyKeys.slice(currentIndex, currentIndex + DAYS_PER_PAGE);
+
+    slice.forEach(day => {
+      const dayEntries = dailyData[day];
+      const temps = dayEntries.map(d => d.main.temp);
+      const descriptions = dayEntries.map(d => d.weather[0].description);
+      const icons = dayEntries.map(d => d.weather[0].icon);
+
+      const avgTemp = averageTemp(temps);
+      const mainDesc = mostFrequent(descriptions);
+      let mainIcon = mostFrequent(icons);
+
+      // Remplacer icône nocturne par jour (pour éviter gris)
+      if(mainIcon.endsWith('n')) {
+        mainIcon = mainIcon.slice(0, -1) + 'd';
+      }
+
+      const dayName = getDayName(day);
+
+      const dayDiv = document.createElement('div');
+      dayDiv.className = 'day-forecast';
+
+      dayDiv.innerHTML = `
+        <h3>${dayName}</h3>
+        <img class="icon" src="https://openweathermap.org/img/wn/${mainIcon}@2x.png" alt="${mainDesc}" />
+        <div class="temp">${avgTemp}°C</div>
+        <div class="description">${mainDesc}</div>
+      `;
+
+      forecastEl.appendChild(dayDiv);
+    });
+
+    // Gestion des boutons
+    prevBtn.disabled = currentIndex === 0;
+    nextBtn.disabled = currentIndex + DAYS_PER_PAGE >= dailyKeys.length;
+  }
+
+  async function fetchForecast(city = DEFAULT_CITY) {
+    errorEl.textContent = '';
+    locationEl.textContent = 'Chargement...';
+    forecastEl.innerHTML = '';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric&lang=fr`
+      );
+      if(!response.ok) throw new Error('Ville introuvable ou problème réseau');
+
+      const data = await response.json();
+
+      locationEl.textContent = `${data.city.name}, ${data.city.country}`;
+
+      // Regrouper par jour
+      dailyData = {};
+      data.list.forEach(item => {
+        const day = item.dt_txt.split(' ')[0];
+        if(!dailyData[day]) dailyData[day] = [];
+        dailyData[day].push(item);
+      });
+
+      dailyKeys = Object.keys(dailyData);
+      currentIndex = 0;
+      renderForecast();
+
+      // Activer boutons si possible
+      if(dailyKeys.length > DAYS_PER_PAGE) {
+        nextBtn.disabled = false;
+      }
+    } catch (err) {
+      errorEl.textContent = err.message;
+      locationEl.textContent = '—';
+    }
+  }
+
+  prevBtn.addEventListener('click', () => {
+    if(currentIndex > 0) {
+      currentIndex -= DAYS_PER_PAGE;
+      if(currentIndex < 0) currentIndex = 0;
+      renderForecast();
+    }
   });
 
-  forecastEl.innerHTML = Object.keys(daily).slice(0,5).map(date => {
-    const day = new Date(date).toLocaleDateString("fr-FR", { weekday: "short" });
-    const temp = Math.round(daily[date].main.temp);
-    const icon = daily[date].weather[0].icon;
-    const desc = daily[date].weather[0].description;
-    return `
-      <div class="day-card">
-        <div class="day-name">${day}</div>
-        <img class="icon" src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${desc}">
-        <div class="temp">${temp}°C</div>
-        <div class="desc">${desc}</div>
-      </div>
-    `;
-  }).join("");
-}
-</script>
+  nextBtn.addEventListener('click', () => {
+    if(currentIndex + DAYS_PER_PAGE < dailyKeys.length) {
+      currentIndex += DAYS_PER_PAGE;
+      renderForecast();
+    }
+  });
 
-</body>
-</html>
+  searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const city = cityInput.value.trim();
+    if(city) {
+      fetchForecast(city);
+    }
+  });
+
+  // Géolocalisation par défaut si disponible
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        // API avec lat/lon au lieu de nom ville
+        fetchForecastByCoords(lat, lon);
+      },
+      () => {
+        // Si refus ou erreur, afficher ville par défaut
+        fetchForecast();
+      }
+    );
+  } else {
+    fetchForecast();
+  }
+
+  // Fonction pour fetch météo par coordonnées
+  async function fetchForecastByCoords(lat, lon) {
+    errorEl.textContent = '';
+    locationEl.textContent = 'Chargement...';
+    forecastEl.innerHTML = '';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true
