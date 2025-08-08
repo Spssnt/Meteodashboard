@@ -1,5 +1,5 @@
 <div id="weather-widget" style="
-  max-width: 240px;
+  max-width: 280px;
   background: #f5f1e9; /* beige clair neutre */
   border-radius: 14px;
   padding: 20px;
@@ -9,6 +9,23 @@
   text-align: center;
 ">
   <h3 style="margin-bottom: 15px; font-weight: 600;">Météo locale</h3>
+  <input 
+    type="text" 
+    id="city-input" 
+    placeholder="Entrez une ville" 
+    style="width: 90%; padding: 8px 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 15px; font-size: 1em;"
+  />
+  <button id="search-btn" style="
+    padding: 8px 14px; 
+    border:none; 
+    border-radius: 6px; 
+    background-color: #8b7e66; 
+    color: white; 
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s;
+  ">Chercher</button>
+
   <p id="city" style="font-size: 1.2em; margin: 8px 0;">Chargement...</p>
   <div id="icon" style="font-size: 48px; margin: 10px 0;"></div>
   <p id="temp" style="font-size: 2em; margin: 6px 0; font-weight: 700;"></p>
@@ -16,7 +33,7 @@
 </div>
 
 <script>
-  const apiKey = 'bee85c5f8eaca0dfbc7b4ba83c08096c'; // Remplace par ta clé API OpenWeatherMap
+  const apiKey = 'bee85c5f8eaca0dfbc7b4ba83c08096c'; // Remplace par ta clé OpenWeatherMap
 
   const weatherIcons = {
     '01d': '☀️',
@@ -39,11 +56,11 @@
     '50n': '🌫️',
   };
 
-  async function fetchWeatherByCoords(lat, lon) {
+  async function fetchWeatherByCity(city) {
     try {
-      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=fr&appid=${apiKey}`;
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&lang=fr&appid=${apiKey}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error('Erreur API météo');
+      if (!res.ok) throw new Error('Ville non trouvée');
       const data = await res.json();
 
       document.getElementById('city').innerText = data.name;
@@ -52,7 +69,7 @@
       document.getElementById('icon').innerText = weatherIcons[data.weather[0].icon] || '❔';
 
     } catch (err) {
-      document.getElementById('city').innerText = 'Erreur météo';
+      document.getElementById('city').innerText = 'Ville non trouvée';
       document.getElementById('temp').innerText = '--';
       document.getElementById('desc').innerText = '';
       document.getElementById('icon').innerText = '';
@@ -60,27 +77,21 @@
     }
   }
 
-  async function getLocationByIP() {
-    try {
-      // API gratuite ipapi.co pour géolocalisation par IP (limite gratuite ~1000 req/jour)
-      const res = await fetch('https://ipapi.co/json/');
-      if (!res.ok) throw new Error('Erreur géolocalisation IP');
-      const data = await res.json();
-      const { latitude, longitude } = data;
-      if (latitude && longitude) {
-        fetchWeatherByCoords(latitude, longitude);
-      } else {
-        throw new Error('Coordonnées introuvables');
-      }
-    } catch (err) {
-      document.getElementById('city').innerText = 'Impossible de détecter la localisation';
-      document.getElementById('temp').innerText = '--';
-      document.getElementById('desc').innerText = '';
-      document.getElementById('icon').innerText = '';
-      console.error(err);
+  document.getElementById('search-btn').addEventListener('click', () => {
+    const city = document.getElementById('city-input').value.trim();
+    if (city) {
+      fetchWeatherByCity(city);
     }
-  }
+  });
 
-  getLocationByIP();
+  // Appuyer sur Entrée dans l'input déclenche la recherche
+  document.getElementById('city-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      document.getElementById('search-btn').click();
+    }
+  });
+
+  // Affichage initial météo Lyon
+  fetchWeatherByCity('Lyon');
 </script>
 
