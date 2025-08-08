@@ -8,14 +8,14 @@
   box-shadow: 0 4px 8px rgba(90, 62, 101, 0.2);
   text-align: center;
 ">
-  <h3 style="margin-bottom: 10px; font-weight: 600;">Météo locale</h3>
+  <h3 style="margin-bottom: 10px; font-weight: 600;">Météo</h3>
   <p id="city" style="font-size: 1.2em; margin: 5px 0;">Chargement...</p>
   <p id="temp" style="font-size: 2em; margin: 5px 0; font-weight: 700;"></p>
   <p id="desc" style="font-size: 1em; font-style: italic; margin: 5px 0;"></p>
 </div>
 
 <script>
-  const apiKey = 'TA_CLE_API_ICI'; // Remplace par ta clé API OpenWeatherMap
+  const apiKey = 'bee85c5f8eaca0dfbc7b4ba83c08096c'; // Remplace par ta clé API OpenWeatherMap
 
   async function fetchWeatherByCoords(lat, lon) {
     try {
