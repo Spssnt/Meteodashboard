@@ -1,280 +1,156 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Widget Météo - Géoloc + Recherche</title>
+<meta charset="UTF-8">
+<title>Widget Météo Bohème Pastel</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Amatic+SC&family=Poppins&display=swap');
-
-  :root {
-    --color-bg: #fef9f4;
-    --color-primary: #f7c6b8;
-    --color-secondary: #c5d8d1;
-    --color-accent: #b89fca;
-    --color-text: #4a4a4a;
-    --shadow: 0 4px 10px rgba(200, 180, 170, 0.3);
-  }
-
   body {
-    background: var(--color-bg);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f8f5f2;
+    color: #444;
     display: flex;
     justify-content: center;
-    padding: 40px;
+    padding: 20px;
   }
 
   .weather-widget {
-    background: white;
-    box-shadow: var(--shadow);
-    border-radius: 15px;
-    width: 360px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     padding: 20px;
+    max-width: 500px;
     text-align: center;
-    color: var(--color-text);
-    user-select: none;
   }
 
-  .weather-widget h2 {
-    font-family: 'Amatic SC', cursive;
-    font-size: 2.2em;
-    color: var(--color-accent);
-    margin: 0 0 10px 0;
+  h2 {
+    font-size: 1.4rem;
+    color: #7a6c5d;
+    margin-bottom: 10px;
   }
 
-  .location {
-    font-weight: 600;
-    font-size: 1.1em;
-    margin-bottom: 15px;
+  .forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
   }
 
-  .search-box {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 15px;
-  }
-
-  .search-box input {
-    flex: 1;
-    padding: 6px;
-    border: 1px solid var(--color-secondary);
-    border-radius: 8px;
-    font-family: 'Poppins', sans-serif;
-  }
-
-  .search-box button {
-    background: var(--color-primary);
-    border: none;
-    border-radius: 8px;
-    padding: 6px 12px;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .search-box button:hover {
-    background: var(--color-accent);
-  }
-
-  .forecast-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    flex-wrap: nowrap;
-  }
-
-  .day-forecast {
-    background: var(--color-secondary);
-    border-radius: 10px;
+  .day-card {
+    background: #fffaf7;
+    border-radius: 15px;
     padding: 10px;
-    flex: 1;
-    box-shadow: 0 2px 6px rgba(184, 159, 202, 0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
   }
 
-  .day-forecast h3 {
-    font-family: 'Amatic SC', cursive;
-    margin: 0 0 8px 0;
-    font-size: 1.3em;
-    color: var(--color-primary);
+  .day-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .day-name {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #a1887f;
   }
 
   .temp {
-    font-weight: 700;
-    font-size: 1.5em;
-    color: var(--color-primary);
-    margin-bottom: 6px;
-  }
-
-  .description {
-    font-style: italic;
-    text-transform: capitalize;
-    font-size: 0.95em;
-    margin-bottom: 6px;
-    min-height: 40px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #6b705c;
   }
 
   .icon {
     width: 50px;
     height: 50px;
-    margin: 0 auto;
   }
 
-  .error {
-    color: #c94c4c;
-    font-weight: 700;
-    margin-top: 10px;
-  }
-
-  .nav-buttons {
-    margin-top: 15px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  .nav-buttons button {
-    background: var(--color-primary);
-    border: none;
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-weight: 600;
-    color: white;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-    transition: background-color 0.3s ease;
-  }
-
-  .nav-buttons button:disabled {
-    background: #e5c7bf;
-    cursor: default;
-  }
-
-  .nav-buttons button:hover:not(:disabled) {
-    background: var(--color-accent);
+  .desc {
+    font-size: 0.9rem;
+    color: #888;
   }
 </style>
 </head>
 <body>
 
-<div class="weather-widget" role="region" aria-label="Widget météo avec prévision sur plusieurs jours avec navigation">
-  <h2>Prévision météo</h2>
-  
-  <div class="search-box">
-    <input type="text" id="cityInput" placeholder="Entrez une ville..." />
-    <button id="searchBtn">OK</button>
-  </div>
-
-  <div class="location" id="location">Chargement...</div>
-  <div class="forecast-container" id="forecast"></div>
-  <div class="error" id="error"></div>
-  
-  <div class="nav-buttons">
-    <button id="prevBtn" disabled>← Précédent</button>
-    <button id="nextBtn" disabled>Suivant →</button>
-  </div>
+<div class="weather-widget">
+  <h2 id="location">Chargement...</h2>
+  <div class="forecast-grid" id="forecast"></div>
+  <div id="error" style="color:red; margin-top:10px;"></div>
 </div>
 
 <script>
-  const API_KEY = 'bee85c5f8eaca0dfbc7b4ba83c08096c'; // 🔹 Mets ici ta clé API OpenWeatherMap
-  const DEFAULT_CITY = 'Lyon,FR';
+const API_KEY = "bee85c5f8eaca0dfbc7b4ba83c08096c";
+const DEFAULT_CITY = "Paris,FR";
+const forecastEl = document.getElementById("forecast");
+const locationEl = document.getElementById("location");
+const errorEl = document.getElementById("error");
 
-  const locationEl = document.getElementById('location');
-  const forecastEl = document.getElementById('forecast');
-  const errorEl = document.getElementById('error');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const cityInput = document.getElementById('cityInput');
-  const searchBtn = document.getElementById('searchBtn');
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(pos => {
+    fetchForecastByCoords(pos.coords.latitude, pos.coords.longitude);
+  }, () => {
+    fetchForecast(DEFAULT_CITY);
+  });
+} else {
+  fetchForecast(DEFAULT_CITY);
+}
 
-  let dailyKeys = [];
-  let dailyData = {};
-  let currentIndex = 0;
-  const DAYS_PER_PAGE = 5;
+async function fetchForecast(city) {
+  try {
+    errorEl.textContent = "";
+    locationEl.textContent = "Chargement...";
+    forecastEl.innerHTML = "";
 
-  function getDayName(dateStr) {
-    return new Date(dateStr).toLocaleDateString('fr-FR', { weekday: 'short' });
-  }
+    const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric&lang=fr`);
+    if (!res.ok) throw new Error("Ville introuvable");
+    const data = await res.json();
 
-  function averageTemp(temps) {
-    return Math.round(temps.reduce((a,b) => a+b, 0) / temps.length);
-  }
-
-  function mostFrequent(arr) {
-    return arr.sort((a,b) =>
-      arr.filter(v => v===a).length - arr.filter(v => v===b).length
-    ).pop();
-  }
-
-  function renderForecast() {
-    forecastEl.innerHTML = '';
-    const slice = dailyKeys.slice(currentIndex, currentIndex + DAYS_PER_PAGE);
-    slice.forEach(day => {
-      const entries = dailyData[day];
-      const avgTemp = averageTemp(entries.map(e => e.main.temp));
-      const mainDesc = mostFrequent(entries.map(e => e.weather[0].description));
-      const mainIcon = mostFrequent(entries.map(e => e.weather[0].icon));
-
-      forecastEl.innerHTML += `
-        <div class="day-forecast">
-          <h3>${getDayName(day)}</h3>
-          <img class="icon" src="https://openweathermap.org/img/wn/${mainIcon}@2x.png" alt="${mainDesc}" />
-          <div class="temp">${avgTemp}°C</div>
-          <div class="description">${mainDesc}</div>
-        </div>
-      `;
-    });
-    prevBtn.disabled = currentIndex === 0;
-    nextBtn.disabled = currentIndex + DAYS_PER_PAGE >= dailyKeys.length;
-  }
-
-  function displayForecast(data) {
     locationEl.textContent = `${data.city.name}, ${data.city.country}`;
-    errorEl.textContent = '';
-    dailyData = {};
-    data.list.forEach(item => {
-      const day = item.dt_txt.split(' ')[0];
-      if (!dailyData[day]) dailyData[day] = [];
-      dailyData[day].push(item);
-    });
-    dailyKeys = Object.keys(dailyData);
-    currentIndex = 0;
-    renderForecast();
-    nextBtn.disabled = dailyKeys.length <= DAYS_PER_PAGE;
+    renderForecast(data.list);
+  } catch (err) {
+    errorEl.textContent = err.message;
   }
+}
 
-  async function fetchForecast(query) {
-    try {
-      const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?${query}&appid=${API_KEY}&units=metric&lang=fr`);
-      if (!res.ok) throw new Error('Ville introuvable ou problème réseau');
-      const data = await res.json();
-      displayForecast(data);
-    } catch (err) {
-      errorEl.textContent = err.message;
-      locationEl.textContent = '—';
-    }
+async function fetchForecastByCoords(lat, lon) {
+  try {
+    errorEl.textContent = "";
+    locationEl.textContent = "Chargement...";
+    forecastEl.innerHTML = "";
+
+    const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=fr`);
+    if (!res.ok) throw new Error("Localisation introuvable");
+    const data = await res.json();
+
+    locationEl.textContent = `${data.city.name}, ${data.city.country}`;
+    renderForecast(data.list);
+  } catch (err) {
+    errorEl.textContent = err.message;
   }
+}
 
-  prevBtn.addEventListener('click', () => {
-    if (currentIndex > 0) { currentIndex -= DAYS_PER_PAGE; renderForecast(); }
-  });
-  nextBtn.addEventListener('click', () => {
-    if (currentIndex + DAYS_PER_PAGE < dailyKeys.length) { currentIndex += DAYS_PER_PAGE; renderForecast(); }
+function renderForecast(list) {
+  const daily = {};
+  list.forEach(item => {
+    const date = item.dt_txt.split(" ")[0];
+    if (!daily[date]) daily[date] = item;
   });
 
-  searchBtn.addEventListener('click', () => {
-    const city = cityInput.value.trim();
-    if (city) fetchForecast(`q=${city}`);
-  });
-
-  // 🔹 Géolocalisation automatique
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      pos => fetchForecast(`lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`),
-      () => fetchForecast(`q=${DEFAULT_CITY}`)
-    );
-  } else {
-    fetchForecast(`q=${DEFAULT_CITY}`);
-  }
+  forecastEl.innerHTML = Object.keys(daily).slice(0,5).map(date => {
+    const day = new Date(date).toLocaleDateString("fr-FR", { weekday: "short" });
+    const temp = Math.round(daily[date].main.temp);
+    const icon = daily[date].weather[0].icon;
+    const desc = daily[date].weather[0].description;
+    return `
+      <div class="day-card">
+        <div class="day-name">${day}</div>
+        <img class="icon" src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${desc}">
+        <div class="temp">${temp}°C</div>
+        <div class="desc">${desc}</div>
+      </div>
+    `;
+  }).join("");
+}
 </script>
 
 </body>
