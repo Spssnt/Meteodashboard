@@ -60,23 +60,27 @@
     }
   }
 
-  function requestLocation() {
-    if (!navigator.geolocation) {
-      document.getElementById('city').innerText = 'Géolocalisation non supportée';
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      position => fetchWeatherByCoords(position.coords.latitude, position.coords.longitude),
-      error => {
-        document.getElementById('city').innerText = 'Position refusée';
-        document.getElementById('temp').innerText = '--';
-        document.getElementById('desc').innerText = '';
-        document.getElementById('icon').innerText = '';
-        console.warn(error);
+  async function getLocationByIP() {
+    try {
+      // API gratuite ipapi.co pour géolocalisation par IP (limite gratuite ~1000 req/jour)
+      const res = await fetch('https://ipapi.co/json/');
+      if (!res.ok) throw new Error('Erreur géolocalisation IP');
+      const data = await res.json();
+      const { latitude, longitude } = data;
+      if (latitude && longitude) {
+        fetchWeatherByCoords(latitude, longitude);
+      } else {
+        throw new Error('Coordonnées introuvables');
       }
-    );
+    } catch (err) {
+      document.getElementById('city').innerText = 'Impossible de détecter la localisation';
+      document.getElementById('temp').innerText = '--';
+      document.getElementById('desc').innerText = '';
+      document.getElementById('icon').innerText = '';
+      console.error(err);
+    }
   }
 
-  requestLocation();
+  getLocationByIP();
 </script>
+
